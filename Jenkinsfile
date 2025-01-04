@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     stages {
-        /*
 
         stage('Build') {
             agent {
@@ -22,7 +21,7 @@ pipeline {
                 '''
             }
         }
-        */
+  
 
         stage('Test') {
             agent {
