@@ -33,7 +33,8 @@ pipeline {
             steps {
                 sh '''
                     #test -f build/index.html
-                    npm test
+                    npm test --watchAll
+                    a
                 '''
             }
         }
