@@ -8,7 +8,6 @@ pipeline {
     }
 
     stages {
-
         stage('Build') {
             agent {
                 docker {
@@ -28,53 +27,53 @@ pipeline {
             }
         }
 
-        // stage('Tests') {
-        //     parallel {
-        //         stage('Unit tests') {
-        //             agent {
-        //                 docker {
-        //                     image 'node:18-alpine'
-        //                     reuseNode true
-        //                 }
-        //             }
+        stage('Tests') {
+            parallel {
+                stage('Unit tests') {
+                    agent {
+                        docker {
+                            image 'node:18-alpine'
+                            reuseNode true
+                        }
+                    }
 
-        //             steps {
-        //                 sh '''
-        //                     test -f build/index.html
-        //                     npm test
-        //                 '''
-        //             }
-        //             post {
-        //                 always {
-        //                     junit 'jest-results/junit.xml'
-        //                 }
-        //             }
-        //         }
+                    steps {
+                        sh '''
+                            test -f build/index.html
+                            npm test
+                        '''
+                    }
+                    post {
+                        always {
+                            junit 'jest-results/junit.xml'
+                        }
+                    }
+                }
 
-        //         stage('E2E') {
-        //             agent {
-        //                 docker {
-        //                     image 'my-playwright'
-        //                     reuseNode true
-        //                 }
-        //             }
+                stage('E2E') {
+                    agent {
+                        docker {
+                            image 'my-playwright'
+                            reuseNode true
+                        }
+                    }
 
-        //             steps {
-        //                 sh '''
-        //                     serve -s build &
-        //                     sleep 10
-        //                     npx playwright test  --reporter=html
-        //                 '''
-        //             }
+                    steps {
+                        sh '''
+                            serve -s build &
+                            sleep 10
+                            npx playwright test  --reporter=html
+                        '''
+                    }
 
-        //             post {
-        //                 always {
-        //                     publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Local E2E', reportTitles: '', useWrapperFileDirectly: true])
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
+                    post {
+                        always {
+                            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Local E2E', reportTitles: '', useWrapperFileDirectly: true])
+                        }
+                    }
+                }
+            }
+        }
 
         stage('Deploy staging') {
             agent {
