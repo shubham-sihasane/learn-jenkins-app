@@ -17,9 +17,13 @@ pipeline {
                 }
             }
             steps {
-                sh '''
-                    aws --version
-                '''
+                withCredentials([usernamePassword(credentialsId: 'AWS-Credentials', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
+                    sh '''
+                        aws --version
+                        echo "<h1>Hello World!! >> index.html</h1>"
+                        aws s3 cp index.html s3://uniquebucki/index.html
+                    '''
+                }
             }
         }
 
