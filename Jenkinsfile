@@ -67,7 +67,7 @@ pipeline {
               }
               post {
                   always {
-                      publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright HTML Report', reportTitles: '', useWrapperFileDirectly: true])
+                      publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright Local Report', reportTitles: '', useWrapperFileDirectly: true])
                   }
               }
             }
@@ -82,7 +82,7 @@ pipeline {
                 }
             }
             steps {
-              
+
                 sh '''
                   npm install netlify-cli
                   node_modules/.bin/netlify --version
@@ -92,5 +92,27 @@ pipeline {
                 '''
             }
         }
+
+        stage('Prod E2E Test') {
+              agent {
+                  docker {
+                      image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
+                      reuseNode true
+                  }
+              }
+              environment {
+                CI_ENVIRONMENT_URL = "https://happyjenkins.netlify.app"
+              }
+              steps {
+                  sh '''
+                      npx playwright test --reporter=html
+                  '''
+              }
+              post {
+                  always {
+                      publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright PROD Report', reportTitles: '', useWrapperFileDirectly: true])
+                  }
+              }
+            }
     }
 }
