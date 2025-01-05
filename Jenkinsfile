@@ -73,7 +73,7 @@ pipeline {
             }
           }
         }
-        
+
         stage('Stage Deployment') {
               agent {
                   docker {
@@ -81,9 +81,7 @@ pipeline {
                       reuseNode true
                   }
               }
-              environment {
-                 = "${env.STAGING_URL}"
-              }
+              
               steps {
                   sh '''
                       node --version
