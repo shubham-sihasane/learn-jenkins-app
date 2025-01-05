@@ -9,11 +9,24 @@ pipeline {
 
     stages {
 
-        stage('Build Docker Image'){
+        stage('AWS'){
+            agent {
+                docker {
+                    image 'amazon/aws-cli'
+                    agrs '--entrypoint=""'
+                }
+            }
             steps {
-                sh 'docker build -t my-playwright .'
+                sh '''
+                    --entrypoint = 'aws --version
+                '''
             }
         }
+        // stage('Docker Build'){
+        //     steps {
+        //         sh 'docker build -t my-playwright .'
+        //     }
+        // }
 
         stage('Build') {
             agent {
