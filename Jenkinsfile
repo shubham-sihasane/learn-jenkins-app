@@ -2,11 +2,13 @@ pipeline {
     agent any
 
     environment {
+        APP_NAME = 'jenkins-app'
         REACT_APP_VERSION = "1.0.$BUILD_ID"
         AWS_DEFAULT_REGION = 'ap-south-1'
         AWS_ECS_CLUSTER_NAME = 'JenkinsCluster'
         AWS_ECS_SERVICE_NAME = 'jenkinsAppService'
         AWS_ECS_TD = 'jenkinsApp'
+
     }
 
     stages {
@@ -41,7 +43,7 @@ pipeline {
 
             steps {
                 sh '''
-                    docker build -t jenkins-app .
+                    docker build -t $APP_NAME:$REACT_APP_VERSION .
                 '''
             }
         }
@@ -51,7 +53,7 @@ pipeline {
                 docker {
                     image 'my-aws-cli'
                     reuseNode true
-                    args "-u root --entrypoint=''"
+                    args "--entrypoint=''"
                 }
             }
 
