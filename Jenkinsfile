@@ -9,7 +9,6 @@ pipeline {
         AWS_ECS_SERVICE_NAME = 'jenkinsAppService'
         AWS_ECS_TD = 'jenkinsApp'
         AWS_ECR_REGISTRY = '445567072242.dkr.ecr.ap-south-1.amazonaws.com/jenkins-app'
-
     }
 
     stages {
@@ -33,7 +32,7 @@ pipeline {
             }
         }
 
-        stage('Docker Build'){
+        stage('Build Docker image') {
             agent {
                 docker {
                     image 'my-aws-cli'
@@ -44,13 +43,14 @@ pipeline {
 
             steps {
                 withCredentials([usernamePassword(credentialsId: 'AWS-Credentials', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
-                sh '''
-                    docker build -t $AWS_ECR_REGISTRY/$APP_NAME:$REACT_APP_VERSION .
-                    aws ecr get-login-password | docker login --username AWS --password-stdin $AWS_ECR_REGISTRY
-                    docker push $AWS_ECR_REGISTRY/$APP_NAME:$REACT_APP_VERSION
-                '''
+                    sh '''
+                        docker build -t $AWS_DOCKER_REGISTRY/$APP_NAME:$REACT_APP_VERSION .
+                        aws ecr get-login-password | docker login --username AWS --password-stdin $AWS_DOCKER_REGISTRY
+                        docker push $AWS_DOCKER_REGISTRY/$APP_NAME:$REACT_APP_VERSION
+                    '''
+                }
             }
-        }
+        }        
 
         stage('Deploy to AWS') {
             agent {
@@ -65,12 +65,12 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'AWS-Credentials', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
                     sh '''
                         aws --version
-                        LATEST_TD_REVISION=$(aws ecs register-task-definition --cli-input-json file://aws/task-definition.json | jq '.taskDefinition.revision')
-                        aws ecs update-service --cluster $AWS_ECS_CLUSTER_NAME --service $AWS_ECS_SERVICE_NAME --task-definition $AWS_ECS_TD:$LATEST_TD_REVISION
-                        aws ecs wait services-stable --cluster $AWS_ECS_CLUSTER_NAME --services $AWS_ECS_SERVICE_NAME
+                        LATEST_TD_REVISION=$(aws ecs register-task-definition --cli-input-json file://aws/task-definition-prod.json | jq '.taskDefinition.revision')
+                        aws ecs update-service --cluster $AWS_ECS_CLUSTER --service $AWS_ECS_SERVICE_PROD --task-definition $AWS_ECS_TD_PROD:$LATEST_TD_REVISION
+                        aws ecs wait services-stable --cluster $AWS_ECS_CLUSTER --services $AWS_ECS_SERVICE_PROD
                     '''
                 }
             }
-        }
+        }        
     }
 }
