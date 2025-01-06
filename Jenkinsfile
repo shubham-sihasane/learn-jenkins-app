@@ -8,7 +8,7 @@ pipeline {
         AWS_ECS_CLUSTER_NAME = 'JenkinsCluster'
         AWS_ECS_SERVICE_NAME = 'jenkinsAppService'
         AWS_ECS_TD = 'jenkinsApp'
-        AWS_ECR_REGISTRY = '445567072242.dkr.ecr.ap-south-1.amazonaws.com/jenkins-app'
+        AWS_ECR_REGISTRY = '445567072242.dkr.ecr.ap-south-1.amazonaws.com'
 
     }
 
