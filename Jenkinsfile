@@ -25,28 +25,29 @@ pipeline {
                         LATEST_TD_REVISION=$(aws ecs register-task-definition --cli-input-json file://aws/task-definition.json | jq '.taskDefinition.revision')
                         echo $LATEST_TD_REVISION
                         aws ecs update-service --cluster JenkinsCluster --service jenkinsAppService --task-definition jenkinsApp:$LATEST_TD_REVISION
+                        aws ecs wait services-stable --cluster JenkinsCluster --services jenkinsAppService
                     '''
                 }
             }
         }
 
-        stage('Build') {
-            agent {
-                docker {
-                    image 'node:18-alpine'
-                    reuseNode true
-                }
-            }
-            steps {
-                sh '''
-                    ls -la
-                    node --version
-                    npm --version
-                    npm ci
-                    npm run build
-                    ls -la
-                '''
-            }
-        }
+        // stage('Build') {
+        //     agent {
+        //         docker {
+        //             image 'node:18-alpine'
+        //             reuseNode true
+        //         }
+        //     }
+        //     steps {
+        //         sh '''
+        //             ls -la
+        //             node --version
+        //             npm --version
+        //             npm ci
+        //             npm run build
+        //             ls -la
+        //         '''
+        //     }
+        // }
     }
 }
