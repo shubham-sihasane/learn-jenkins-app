@@ -3,10 +3,32 @@ pipeline {
 
     environment {
         REACT_APP_VERSION = "1.0.$BUILD_ID"
-        AWS_DEFAULT_REGION = 'ap-south-1'
+        AWS_DEFAULT_REGION = 'us-east-1'
     }
 
     stages {
+
+        stage('Deploy to AWS') {
+            agent {
+                docker {
+                    image 'amazon/aws-cli'
+                    reuseNode true
+                    args "-u root --entrypoint=''"
+                }
+            }
+
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'my-aws', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
+                    sh '''
+                        aws --version
+                        yum install jq -y
+                        LATEST_TD_REVISION=$(aws ecs register-task-definition --cli-input-json file://aws/task-definition.json | jq '.taskDefinition.revision')
+                        echo $LATEST_TD_REVISION
+                        aws ecs update-service --cluster JenkinsCluster --service jenkinsAppService --task-definition jenkinsApp:$LATEST_TD_REVISION
+                    '''
+                }
+            }
+        }
 
         stage('Build') {
             agent {
@@ -24,28 +46,6 @@ pipeline {
                     npm run build
                     ls -la
                 '''
-            }
-        }
-
-        stage('Deploy to AWS') {
-            agent {
-                docker {
-                    image 'amazon/aws-cli'
-                    args "-u root --entrypoint=''"
-                    reuseNode true
-                }
-            }
-
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'AWS-Credentials', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
-                    sh '''
-                        aws --version
-                        yum install node-jq -y
-                        LATEST_TD_REVISION = $(aws ecs register-task-definition --cli-input-json file://aws/task-definition.json | jq '.taskDefinition.revision')
-                        echo $LATEST_TD_REVISION
-                        aws ecs update-service --cluster jenkinsCluster --service jenkinsApp --task-definition jenkinsApp:$LATEST_TD_REVISION
-                    '''
-                }
             }
         }
     }
